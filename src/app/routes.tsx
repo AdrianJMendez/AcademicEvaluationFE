@@ -1,5 +1,5 @@
 import { createBrowserRouter, Navigate } from 'react-router';
-import { LoginPage } from './pages/LoginPage';
+import { LoginPage } from './pages/auth/LoginPage';
 import { StudentDashboard } from './pages/student/StudentDashboard';
 import { NewRequest } from './pages/student/NewRequest';
 import { RequestDetail } from './pages/student/RequestDetail';

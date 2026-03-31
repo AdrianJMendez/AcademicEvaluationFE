@@ -67,12 +67,12 @@ export interface Request {
 }
 
 export interface User {
-  id: string;
+  idUser: string;
   email: string;
   name: string;
   role: 'student' | 'employee';
-  studentCode?: string;
-  employeeId?: string;
+  isActive: boolean;
+  isVerified: boolean;
 }
 
 export interface ScoreResult {

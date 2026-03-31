@@ -8,34 +8,39 @@ import { Label } from '@/app/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
 import { GraduationCap, Briefcase, Lock, Mail } from 'lucide-react';
 import { toast } from 'sonner';
+import {SHA256} from 'crypto-js';
+import authService from '../../../services/auth.service';
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { login, isAuthenticated, user } = useAuth();
+  const { setUserData } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'student' | 'employee'>('student');
 
-  if (isAuthenticated && user) {
-    navigate(user.role === 'student' ? '/student' : '/employee', { replace: true });
-    return null;
-  }
+    const handleLogin = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setIsLoading(true);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+      let hashedPassword = SHA256(password).toString();
 
-    try {
-      await login(email, password, activeTab);
-      toast.success('Inicio de sesion exitoso');
-      navigate(activeTab === 'student' ? '/student' : '/employee');
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Error al iniciar sesion');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      const payload = {
+        email: email,
+        password : hashedPassword
+      }
+
+      authService.login(payload).then((response) => {
+        if(!response.hasError){
+          toast.success('Inicio de sesión exitoso');
+          setUserData(response.data);
+          navigate(response.data.role == 'student' ? '/student' : '/employee'); 
+        }else{
+          toast.error(response.status.message);
+        }
+        setIsLoading(false);
+      });
+    };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
