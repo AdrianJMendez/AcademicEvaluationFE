@@ -17,7 +17,6 @@ export function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'student' | 'employee'>('student');
 
-  // Redirigir si ya está autenticado
   if (isAuthenticated && user) {
     navigate(user.role === 'student' ? '/student' : '/employee', { replace: true });
     return null;
@@ -29,10 +28,10 @@ export function LoginPage() {
 
     try {
       await login(email, password, activeTab);
-      toast.success('Inicio de sesión exitoso');
+      toast.success('Inicio de sesion exitoso');
       navigate(activeTab === 'student' ? '/student' : '/employee');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Error al iniciar sesión');
+      toast.error(error instanceof Error ? error.message : 'Error al iniciar sesion');
     } finally {
       setIsLoading(false);
     }
@@ -42,17 +41,14 @@ export function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 size-16 rounded-full bg-primary/10 flex items-center justify-center">
+          <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-primary/10">
             <GraduationCap className="size-8 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Sistema de Evaluación Académica</CardTitle>
-          <CardDescription>
-            Acceso mediante SSO de la Universidad
-          </CardDescription>
+          <CardTitle className="text-2xl">Sistema de Evaluacion Academica</CardTitle>
         </CardHeader>
         <CardContent>
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
-            <TabsList className="grid w-full grid-cols-2 mb-6">
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'student' | 'employee')}>
+            <TabsList className="mb-6 grid w-full grid-cols-2">
               <TabsTrigger value="student" className="flex items-center gap-2">
                 <GraduationCap className="size-4" />
                 Estudiante
@@ -66,9 +62,9 @@ export function LoginPage() {
             <TabsContent value="student">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email-student">Correo Institucional</Label>
+                  <Label htmlFor="email-student">Correo institucional</Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                    <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       id="email-student"
                       type="email"
@@ -82,13 +78,13 @@ export function LoginPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password-student">Contraseña</Label>
+                  <Label htmlFor="password-student">Contrasena</Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                    <Lock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       id="password-student"
                       type="password"
-                      placeholder="••••••••"
+                      placeholder="********"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="pl-10"
@@ -98,24 +94,19 @@ export function LoginPage() {
                 </div>
 
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+                  {isLoading ? 'Iniciando sesion...' : 'Iniciar sesion'}
                 </Button>
 
-                <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <p className="text-xs text-blue-900 dark:text-blue-100">
-                    <strong>Usuario de prueba:</strong><br />
-                    estudiante@universidad.edu
-                  </p>
-                </div>
+              
               </form>
             </TabsContent>
 
             <TabsContent value="employee">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email-employee">Correo Institucional</Label>
+                  <Label htmlFor="email-employee">Correo institucional</Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                    <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       id="email-employee"
                       type="email"
@@ -129,13 +120,13 @@ export function LoginPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password-employee">Contraseña</Label>
+                  <Label htmlFor="password-employee">Contrasena</Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                    <Lock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       id="password-employee"
                       type="password"
-                      placeholder="••••••••"
+                      placeholder="********"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="pl-10"
@@ -145,15 +136,10 @@ export function LoginPage() {
                 </div>
 
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+                  {isLoading ? 'Iniciando sesion...' : 'Iniciar sesion'}
                 </Button>
 
-                <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <p className="text-xs text-blue-900 dark:text-blue-100">
-                    <strong>Usuario de prueba:</strong><br />
-                    admin@universidad.edu
-                  </p>
-                </div>
+                
               </form>
             </TabsContent>
           </Tabs>
