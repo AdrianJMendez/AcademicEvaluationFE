@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, allowedRole }: ProtectedRouteProps) {
-  const { user, isVerified ,isLoading } = useAuth();
+  const { user, isAuthenticated ,isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -21,7 +21,7 @@ export function ProtectedRoute({ children, allowedRole }: ProtectedRouteProps) {
     );
   }
 
-  if (!isVerified) {
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
