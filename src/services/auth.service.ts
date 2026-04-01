@@ -34,6 +34,43 @@ class AuthService {
       return error.response?.data;
     }
   }
+
+  async register(payload: any): Promise<Response> {
+    try {
+      const response = await api.post(`${this.basePath}/register`, payload);
+      
+      return response.data;
+
+    } catch (error: any) {
+      console.log("error: ", error);
+      return error.response?.data;
+    }
+  }
+
+  async verifyEmailCode(payload: any): Promise<Response> {
+    try {
+      const response = await api.post(`${this.basePath}/email/verify`, payload);
+      
+      return response.data;
+
+    } catch (error: any) {
+      console.log("error: ", error);
+      return error.response?.data;
+    }
+  }
+
+  async resendEmailVerification(payload: any): Promise<Response> {
+    try {
+      const response = await api.post(`${this.basePath}/email/resend`, payload);
+      
+      return response.data;
+
+    } catch (error: any) {
+      console.log("error: ", error);
+      return error.response?.data;
+    }
+  }
+
 }
 
 export default AuthService.getInstance();

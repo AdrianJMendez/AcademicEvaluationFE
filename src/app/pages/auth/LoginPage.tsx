@@ -34,9 +34,22 @@ export function LoginPage() {
         if(!response.hasError){
           toast.success('Inicio de sesión exitoso');
           setUserData(response.data);
+          console.log(response.data.role);
           navigate(response.data.role == 'student' ? '/student' : '/employee'); 
         }else{
-          toast.error(response.status.message);
+          if(response.meta.status == 405){ //El usuario aun no esta verificado
+            authService.resendEmailVerification({email}).then((response)=>{
+              if(!response.hasError){
+                toast.warning("Por favor verifica tu correo.");
+                navigate('/verify-email', { 
+                    state: { email: email }
+                });
+              }else{
+                toast.error(response.meta.message)
+              }
+            });
+          }
+          toast.error(response.meta.message);
         }
         setIsLoading(false);
       });
@@ -102,6 +115,17 @@ export function LoginPage() {
                   {isLoading ? 'Iniciando sesion...' : 'Iniciar sesion'}
                 </Button>
 
+                <div className="text-center text-sm mt-4">
+                  <span className="text-muted-foreground">¿No tienes una cuenta? </span>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/register')}
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Regístrate aquí
+                  </button>
+                </div>
+
               
               </form>
             </TabsContent>
@@ -144,7 +168,17 @@ export function LoginPage() {
                   {isLoading ? 'Iniciando sesion...' : 'Iniciar sesion'}
                 </Button>
 
-                
+                <div className="text-center text-sm mt-4">
+                  <span className="text-muted-foreground">¿No tienes una cuenta? </span>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/register')}
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Regístrate aquí
+                  </button>
+                </div>
+
               </form>
             </TabsContent>
           </Tabs>
