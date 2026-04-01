@@ -11,6 +11,7 @@ import { HistoryInput } from '@/app/components/student/HistoryInput';
 import { JustificationsInput } from '@/app/components/student/JustificationsInput';
 import { toast } from 'sonner';
 import type { OfficialPlan, AcademicHistory, Justification, Discrepancy } from '@/types/academic';
+import { Career, Subject } from '../../../types/academic';
 
 type Step = 'select-career' | 'view-plan' | 'input-history' | 'justifications';
 
@@ -19,7 +20,8 @@ export function NewRequest() {
   const { user } = useAuth();
   const { addRequest } = useData();
   const [step, setStep] = useState<Step>('select-career');
-  const [selectedPlan, setSelectedPlan] = useState<OfficialPlan | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<Career | null>(null);
+  const [idealSubjects, setIdealSubjects] = useState<Subject[] | undefined>();
   const [history, setHistory] = useState<AcademicHistory[]>([]);
   const [discrepancies, setDiscrepancies] = useState<Discrepancy[]>([]);
   const [justifications, setJustifications] = useState<Justification[]>([]);
@@ -32,7 +34,7 @@ export function NewRequest() {
       studentId: user.id,
       studentName: user.name,
       studentCode: user.studentCode || '',
-      careerId: selectedPlan.id,
+      careerId: selectedPlan.idCareer,
       careerName: selectedPlan.careerName,
       officialPlan: selectedPlan,
       studentHistory: history,
@@ -62,8 +64,9 @@ export function NewRequest() {
         {step === 'select-career' && (
           <PlanSelection
             onSelect={(plan) => {
+              console.log("selected Career", plan);
               setSelectedPlan(plan);
-              setStep('view-plan');
+              setStep('view-plan'); 
             }}
           />
         )}
@@ -71,7 +74,10 @@ export function NewRequest() {
         {step === 'view-plan' && selectedPlan && (
           <PlanVisualizationStudent
             plan={selectedPlan}
-            onContinue={() => setStep('input-history')}
+            onContinue={(subjects) => {
+              setIdealSubjects(subjects);
+              setStep('input-history');
+            }}
           />
         )}
 

@@ -2,10 +2,10 @@
 
 export interface Subject {
   idSubject: string;
-  code: string;
-  name: string;
+  subjectCode: string;
+  subjectName: string;
   idealPeriod: number;
-  prerequisites: string[];
+  Prerequisites: Subject[];
   credits?: number;
 }
 
