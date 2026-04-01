@@ -1,7 +1,7 @@
 // Tipos de datos actualizados para el sistema académico
 
 export interface Subject {
-  id: string;
+  idSubject: string;
   code: string;
   name: string;
   idealPeriod: number;
@@ -9,23 +9,28 @@ export interface Subject {
   credits?: number;
 }
 
-export interface OfficialPlan {
-  id: string;
+export interface Career {
+  idCareer: number;
   careerName: string;
   careerCode: string;
+  facultyName: string;
+  descripttion? : string;
+  yearLength: number;
   totalPeriods: number;
-  subjects: Subject[];
+  isActive : boolean;
+  Subjects: Subject[];
+  StudentCareer? : StudentCareer;
 }
 
-export interface AcademicHistory {
-  subjectId: string;
-  periodTaken: number;
-  status: 'approved' | 'failed' | 'in-progress';
-  grade?: number;
-}
+// export interface AcademicHistory {
+//   subjectId: string;
+//   periodTaken: number;
+//   status: 'approved' | 'failed' | 'in-progress';
+//   grade?: number;
+// }
 
 export interface Discrepancy {
-  id: string;
+  idDiscrepancy: string;
   type: 'delay' | 'prerequisite-skip' | 'order-change';
   subjectId: string;
   subjectName: string;
@@ -45,25 +50,36 @@ export interface Justification {
   employeeDocuments?: File[];
 }
 
-export type RequestStatus = 'pending' | 'in-review' | 'reviewed';
+//export type RequestStatus = 'pending' | 'in-review' | 'reviewed';
+
+export interface Status {
+  idStatus : number;
+  statusName : string;
+  idStatusType: number;
+}
 
 export interface Request {
-  id: string;
-  studentId: string;
-  studentName: string;
-  studentCode: string;
-  careerId: string;
-  careerName: string;
-  officialPlan: OfficialPlan;
-  studentHistory: AcademicHistory[];
-  discrepancies: Discrepancy[];
-  justifications: Justification[];
-  status: RequestStatus;
+  idRequest: number;
+  idStudentCareer: number;
+  idStatus: number;
+  discrepancies?: Discrepancy[];
+  justifications?: Justification[];
   submittedAt: Date;
   reviewedAt?: Date;
-  reviewedBy?: string;
+  idEmployeeReviewer?: number;
   finalScore?: number;
-  generatedReport?: string;
+  generatedReportUrl?: string;
+  notes?: string;
+  StudentCareer?: StudentCareer;
+  Status?: Status;
+}
+
+export interface StudentCareer {
+  idStudentCareer : number;
+  idStudent: number;
+  idCareer: number;
+  Student?: Student;
+  Career?: Career;
 }
 
 export interface User {
@@ -73,6 +89,16 @@ export interface User {
   role: 'student' | 'employee';
   isActive: boolean;
   isVerified: boolean;
+  accountNumber?: string;
+  employeeCode?: string;
+}
+
+export interface Student {
+  idStudent :number;
+  accountNumber : string;
+  enrollmentDate : Date;
+  currentPeriod: number;
+  Careers?: Career[];
 }
 
 export interface ScoreResult {
