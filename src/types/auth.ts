@@ -8,6 +8,7 @@ export interface StudentData {
   accountNumber: string;
   enrollmentDate: Date;
   currentPeriod: number;
+  careers: string[];
 }
 
 export interface EmployeeData {

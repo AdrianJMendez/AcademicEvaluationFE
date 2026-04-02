@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
@@ -6,10 +6,14 @@ import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
 import { GraduationCap, Briefcase, Mail, Lock, User, Calendar, Hash, Building, Badge, CreditCard } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { toast } from 'sonner';
 import { SHA256 } from 'crypto-js';
 import authService from '../../../services/auth.service';
 import type { RegisterUserProp, StudentData, EmployeeData } from '@/types/auth';
+import { Career } from '../../../types/academic';
+import publicService from '../../../services/public.service';
+import { MultiSelect } from '@/app/components/ui/multi-select';
 
 export function RegisterPage() {
   const navigate = useNavigate();
@@ -26,6 +30,8 @@ export function RegisterPage() {
   const [accountNumber, setAccountNumber] = useState('');
   const [enrollmentDate, setEnrollmentDate] = useState('');
   const [currentPeriod, setCurrentPeriod] = useState('');
+  const [careers, setCareers] = useState<Career[]>([]);
+  const [selectedCareers, setSelectedCareers] = useState<string[]>([]); // Cambiado a array
   
   // Campos de empleado
   const [employeeCode, setEmployeeCode] = useState('');
@@ -59,6 +65,11 @@ export function RegisterPage() {
         return;
       }
       
+      if (selectedCareers.length === 0) {
+        toast.error('Debe seleccionar al menos una carrera');
+        return;
+      }
+      
       const periodNumber = parseInt(currentPeriod);
       if (isNaN(periodNumber) || periodNumber < 1 || periodNumber > 12) {
         toast.error('El período actual debe ser un número entre 1 y 12');
@@ -79,7 +90,8 @@ export function RegisterPage() {
       const studentData: StudentData | undefined = activeTab === 'student' ? {
         accountNumber,
         enrollmentDate: new Date(enrollmentDate),
-        currentPeriod: parseInt(currentPeriod)
+        currentPeriod: parseInt(currentPeriod),
+        careers: selectedCareers // Enviar array de IDs
       } : undefined;
       
       const employeeData: EmployeeData | undefined = activeTab === 'employee' ? {
@@ -93,21 +105,20 @@ export function RegisterPage() {
         name,
         email,
         password: hashedPassword,
-        idRole: activeTab === 'student' ? 1 : 2, // Ajusta según tus roles
+        idRole: activeTab === 'student' ? 1 : 2,
         studentData,
         employeeData
       };
       
-      authService.register(payload).then((response) =>{
-        if(!response.hasError){
-            toast.success('Registro exitoso. Ahora verifica tu correo');
-            navigate('/verify-email', { 
-                state: { email: email }
-            });
-        }else{
-            toast.error(response.status.message);
-        }
-      });
+      const response = await authService.register(payload);
+      if (!response.hasError) {
+        toast.success('Registro exitoso. Ahora verifica tu correo');
+        navigate('/verify-email', { 
+          state: { email: email }
+        });
+      } else {
+        toast.error(response.status.message);
+      }
     } catch (error) {
       console.error('Error en registro:', error);
       toast.error('Error de conexión. Intente nuevamente');
@@ -119,6 +130,21 @@ export function RegisterPage() {
   const handleGoToLogin = () => {
     navigate('/login');
   };
+
+  useEffect(() => {
+    publicService.getCareersForRegistration().then((response) => {
+      if (!response.hasError && response.data) {
+        setCareers(response.data);
+        // Ya no seleccionamos ninguna por defecto, el usuario debe elegir
+      }
+    });
+  }, []);
+
+  // Preparar opciones para el MultiSelect
+  const careerOptions = careers.map(career => ({
+    value: career.idCareer.toString(),
+    label: career.careerName
+  }));
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
@@ -250,6 +276,34 @@ export function RegisterPage() {
                       disabled={isLoading}
                     />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="careers">Carreras *</Label>
+                  <div className="relative">
+                    <GraduationCap className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground z-10" />
+                    <MultiSelect
+                      options={careerOptions}
+                      value={selectedCareers}
+                      onChange={setSelectedCareers}
+                      placeholder="Selecciona una o más carreras"
+                      disabled={isLoading || careers.length === 0}
+                      className="pl-10"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Puedes seleccionar múltiples carreras si estás inscrito en más de una
+                  </p>
+                  {selectedCareers.length > 0 && (
+                    <p className="text-xs text-green-600">
+                      Carreras seleccionadas: {selectedCareers.length}
+                    </p>
+                  )}
+                  {careers.length === 0 && !isLoading && (
+                    <p className="text-xs text-red-500 mt-1">
+                      No se pudieron cargar las carreras. Recarga la página.
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
