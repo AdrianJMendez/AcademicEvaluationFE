@@ -76,6 +76,7 @@ export function NewRequest() {
             plan={selectedPlan}
             onContinue={(subjects) => {
               setIdealSubjects(subjects);
+              console.log(subjects);
               setStep('input-history');
             }}
           />

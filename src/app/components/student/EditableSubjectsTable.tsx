@@ -49,9 +49,9 @@ export function EditableSubjectsTable({ subjects, onSubjectsChange }: EditableSu
     const newId = `new-${Date.now()}`;
     const newSubject: ParsedSubject = {
       id: newId,
-      code: '',
-      name: '',
-      uv: 0,
+      subjectCode: '',
+      subjectName: '',
+      credits: 0,
       period: 1,
       year: new Date().getFullYear(),
       grade: 0,
@@ -71,7 +71,7 @@ export function EditableSubjectsTable({ subjects, onSubjectsChange }: EditableSu
       if (field === 'grade' && typeof value === 'number') {
         return `${value}%`;
       }
-      if (field === 'uv' && typeof value === 'number') {
+      if (field === 'credits' && typeof value === 'number') {
         return value;
       }
       if (field === 'status') {
@@ -157,13 +157,13 @@ export function EditableSubjectsTable({ subjects, onSubjectsChange }: EditableSu
             {subjects.map((subject) => (
               <TableRow key={subject.id}>
                 <TableCell>
-                  {renderEditableCell('code', subject.code, 'text')}
+                  {renderEditableCell('subjectCode', subject.subjectCode, 'text')}
                 </TableCell>
                 <TableCell>
-                  {renderEditableCell('name', subject.name, 'text')}
+                  {renderEditableCell('subjectName', subject.subjectName, 'text')}
                 </TableCell>
                 <TableCell className="text-center">
-                  {renderEditableCell('uv', subject.uv, 'number')}
+                  {renderEditableCell('credits', subject.credits, 'number')}
                 </TableCell>
                 <TableCell className="text-center">
                   {renderEditableCell('period', subject.period, 'number')}
@@ -234,7 +234,7 @@ export function EditableSubjectsTable({ subjects, onSubjectsChange }: EditableSu
             <div>
               <p className="text-muted-foreground">Total UV</p>
               <p className="text-2xl font-bold">
-                {subjects.reduce((sum, s) => sum + s.uv, 0)}
+                {subjects.reduce((sum, s) => sum + s.credits, 0)}
               </p>
             </div>
           </div>

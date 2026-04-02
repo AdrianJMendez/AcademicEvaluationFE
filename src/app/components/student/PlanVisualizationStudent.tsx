@@ -83,7 +83,7 @@ export function PlanVisualizationStudent({ plan, onContinue }: PlanVisualization
                   <h3 className="font-semibold mb-3">Período {period}</h3>
                   <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
                     {subjects.map((subject) => (
-                      <div key={subject.id} className="border rounded p-3 bg-muted/30 hover:bg-muted/50 transition-colors">
+                      <div key={subject.idSubject} className="border rounded p-3 bg-muted/30 hover:bg-muted/50 transition-colors">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <p className="font-medium text-sm">{subject.subjectCode}</p>

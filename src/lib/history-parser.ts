@@ -1,9 +1,8 @@
-// lib/history-parser.ts
 export interface ParsedSubject {
   id: string;
-  code: string;
-  name: string;
-  uv: number;
+  subjectCode: string;
+  subjectName: string;
+  credits: number;
   period: number;
   year: number;
   grade: number;
@@ -46,7 +45,6 @@ class HistoryParserService {
    *   - N, H o T -> 11
    *   - I -> 1
    *   - O -> 0
-   * - Agregar un guion "-" entre los primeros dos dígitos y los últimos tres
    */
   private normalizeCode(code: string): string {
     if (!code) return code;
@@ -115,13 +113,6 @@ class HistoryParserService {
       }
       
       normalized = start + convertedSuffix;
-    }
-    
-    // Agregar guion entre los primeros dos caracteres y los últimos tres
-    if (normalized.length >= 5) {
-      const firstPart = normalized.substring(0, 2);
-      const lastPart = normalized.substring(2);
-      normalized = `${firstPart}-${lastPart}`;
     }
     
     // Log para depuración
@@ -194,9 +185,9 @@ class HistoryParserService {
           
           subjects.push({
             id: `${code}-${year}-${period}`,
-            code,
-            name,
-            uv: Math.round(uv), // Convertir a entero si es necesario
+            subjectCode: code,
+            subjectName: name,
+            credits: Math.round(uv), // Convertir a entero si es necesario
             period,
             year,
             grade: Math.round(grade),
@@ -222,8 +213,8 @@ class HistoryParserService {
     console.log('\n=== ASIGNATURAS DETECTADAS ===\n');
     
     const formattedSubjects = subjects.map(subject => ({
-      subjectCode: subject.code,
-      subjectName: subject.name
+      subjectCode: subject.subjectCode,
+      subjectName: subject.subjectName
     }));
     
     console.log(JSON.stringify(formattedSubjects, null, 2));
@@ -362,9 +353,9 @@ class HistoryParserService {
       
       return {
         id: `${code}-${year}-${period}`,
-        code,
-        name,
-        uv,
+        subjectCode: code,
+        subjectName: name,
+        credits : uv,
         period,
         year,
         grade,
