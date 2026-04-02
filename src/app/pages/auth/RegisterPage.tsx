@@ -71,8 +71,8 @@ export function RegisterPage() {
       }
       
       const periodNumber = parseInt(currentPeriod);
-      if (isNaN(periodNumber) || periodNumber < 1 || periodNumber > 12) {
-        toast.error('El período actual debe ser un número entre 1 y 12');
+      if (isNaN(periodNumber) || periodNumber < 1 || periodNumber > 30) {
+        toast.error('El período actual debe ser un número entre 1 y 30');
         return;
       }
     } else {
@@ -117,7 +117,7 @@ export function RegisterPage() {
           state: { email: email }
         });
       } else {
-        toast.error(response.status.message);
+        toast.error(response.meta.message);
       }
     } catch (error) {
       console.error('Error en registro:', error);
@@ -315,7 +315,7 @@ export function RegisterPage() {
                       type="number"
                       placeholder="1"
                       min="1"
-                      max="12"
+                      max="30"
                       value={currentPeriod}
                       onChange={(e) => setCurrentPeriod(e.target.value)}
                       className="pl-10"
@@ -323,7 +323,7 @@ export function RegisterPage() {
                       disabled={isLoading}
                     />
                   </div>
-                  <p className="text-xs text-muted-foreground">Período académico actual (1-12)</p>
+                  <p className="text-xs text-muted-foreground">Período académico actual (1-30)</p>
                 </div>
               </TabsContent>
 
