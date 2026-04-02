@@ -84,6 +84,7 @@ export function NewRequest() {
         {step === 'input-history' && selectedPlan && (
           <HistoryInput
             idealSubjects={idealSubjects}
+            plan = {selectedPlan}
             onContinue={(hist, discrep) => {
               setHistory(hist);
               setDiscrepancies(discrep);

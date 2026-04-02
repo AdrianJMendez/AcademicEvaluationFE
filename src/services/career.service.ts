@@ -25,6 +25,18 @@ class CareerService {
     }
   }
 
+  async evalateHistory(payload:any): Promise<Response> {
+    try {
+      const response = await api.post(`${this.basePath}/evaluate`,payload);
+      
+      return response.data;
+
+    } catch (error: any) {
+      console.log("error: ", error);
+      return error.response?.data;
+    }
+  }
+
 
 }
 

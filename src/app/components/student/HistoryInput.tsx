@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app
 import { Button } from '@/app/components/ui/button';
 import { Upload, Loader2, FileText, AlertCircle, Eye, HelpCircle, X, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
-import type { OfficialPlan, AcademicHistory, Discrepancy } from '@/types/academic';
+import type { AcademicHistory, Discrepancy } from '@/types/academic';
 import OCRService from '@/lib/ocr';
 import HistoryParserService, { ParsedSubject, HistoryFormat } from '@/lib/history-parser';
 import { EditableSubjectsTable } from '@/app/components/student/EditableSubjectsTable';
@@ -32,9 +32,11 @@ import {
 } from '@/app/components/ui/dialog';
 import { Badge } from '@/app/components/ui/badge';
 import { Career, Subject } from '../../../types/academic';
+import careerService from '../../../services/career.service';
 
 interface HistoryInputProps {
   idealSubjects: Subject[];
+  plan : Career;
   onContinue: (history: AcademicHistory[], discrepancies: Discrepancy[]) => void;
 }
 
@@ -48,7 +50,7 @@ interface ImageFile {
   parsedSubjects?: ParsedSubject[];
 }
 
-export function HistoryInput({idealSubjects, onContinue }: HistoryInputProps) {
+export function HistoryInput({idealSubjects, plan, onContinue }: HistoryInputProps) {
   const [images, setImages] = useState<ImageFile[]>([]);
   const [allSubjects, setAllSubjects] = useState<ParsedSubject[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -203,9 +205,39 @@ export function HistoryInput({idealSubjects, onContinue }: HistoryInputProps) {
         status: subject.status === 'APR' ? 'approved' : 
                 subject.status === 'RPB' ? 'failed' : 'notPresented',
       }));
+
+      //EVALUAR PLAN DE ESTUDIOS CON EL ORIGINAL PARA DETECTAR DISCREPANCIAS
+
+      const mappedSubjects = allSubjects.map((s)=>{
+        return {
+          subjectCode : s.subjectCode,
+          subjectName : s.subjectName,
+          period: s.period,
+          year: s.year
+        }
+      });
+
+      const payload = {
+        idStudentCareer: plan.StudentCareer?.idStudentCareer,
+        history : mappedSubjects
+      }
+
+      console.log(payload);
+
+      careerService.evalateHistory(payload)
+      .then((response)=>{
+        if(!response.hasError){
+          console.log("response", response);
+          onContinue(academicHistory,response.data);
+        }
+      })
+      .finally(()=>{
+        setIsSubmitting(false);
+        setShowValidationDialog(false);
+      });
       
       
-      setShowValidationDialog(false);
+      //setShowValidationDialog(false);
       //onContinue(academicHistory, discrepancies);
       
     } catch (error) {

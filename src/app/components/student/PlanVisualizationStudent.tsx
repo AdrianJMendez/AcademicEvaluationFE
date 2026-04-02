@@ -70,6 +70,10 @@ export function PlanVisualizationStudent({ plan, onContinue }: PlanVisualization
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <Button onClick={()=>onContinue(idealSubjects)} className="w-full">
+          Continuar con mi Historial Académico
+          <ArrowRight className="size-4 ml-2" />
+        </Button>
         {Object.keys(subjectsByPeriod).length === 0 ? (
           <div className="text-center py-8">
             <p className="text-muted-foreground">No hay asignaturas disponibles para mostrar</p>
@@ -108,10 +112,6 @@ export function PlanVisualizationStudent({ plan, onContinue }: PlanVisualization
           </div>
         )}
 
-        <Button onClick={()=>onContinue(idealSubjects)} className="w-full">
-          Continuar con mi Historial Académico
-          <ArrowRight className="size-4 ml-2" />
-        </Button>
       </CardContent>
     </Card>
   );
