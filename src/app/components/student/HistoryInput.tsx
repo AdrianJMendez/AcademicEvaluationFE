@@ -2,12 +2,13 @@
 import { useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
-import { Upload, Loader2, FileText, AlertCircle, Eye, HelpCircle, X } from 'lucide-react';
+import { Upload, Loader2, FileText, AlertCircle, Eye, HelpCircle, X, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import type { OfficialPlan, AcademicHistory, Discrepancy } from '@/types/academic';
 import OCRService from '@/lib/ocr';
 import HistoryParserService, { ParsedSubject, HistoryFormat } from '@/lib/history-parser';
 import { EditableSubjectsTable } from '@/app/components/student/EditableSubjectsTable';
+import SubjectValidatorService, { ValidationResult } from '@/lib/subject-validator';
 import {
   Select,
   SelectContent,
@@ -21,9 +22,19 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/app/components/ui/tooltip';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/app/components/ui/dialog';
+import { Badge } from '@/app/components/ui/badge';
+import { Career, Subject } from '../../../types/academic';
 
 interface HistoryInputProps {
-  plan: OfficialPlan;
+  idealSubjects: Subject[];
   onContinue: (history: AcademicHistory[], discrepancies: Discrepancy[]) => void;
 }
 
@@ -37,12 +48,15 @@ interface ImageFile {
   parsedSubjects?: ParsedSubject[];
 }
 
-export function HistoryInput({ plan, onContinue }: HistoryInputProps) {
+export function HistoryInput({idealSubjects, onContinue }: HistoryInputProps) {
   const [images, setImages] = useState<ImageFile[]>([]);
   const [allSubjects, setAllSubjects] = useState<ParsedSubject[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showTable, setShowTable] = useState(false);
-  const [historyFormat, setHistoryFormat] = useState<HistoryFormat>('standard');
+  const [historyFormat, setHistoryFormat] = useState<HistoryFormat>('webTable');
+  const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
+  const [showValidationDialog, setShowValidationDialog] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -132,7 +146,17 @@ export function HistoryInput({ plan, onContinue }: HistoryInputProps) {
         const parsedSubjects = HistoryParserService.combineResults(allExtractedTexts, historyFormat);
         setAllSubjects(parsedSubjects);
         setShowTable(true);
-        toast.success(`Se detectaron ${parsedSubjects.length} asignaturas`);
+        
+        const validation = SubjectValidatorService.validateSubjects(parsedSubjects, idealSubjects);
+        setValidationResult(validation);
+        
+        if (!validation.isValid) {
+          toast.warning(`Se encontraron ${validation.invalidSubjects.length} asignaturas inválidas`);
+        } else if (validation.warnings.length > 0) {
+          toast.info(`Se encontraron ${validation.warnings.length} advertencias`);
+        } else {
+          toast.success(`Se detectaron ${parsedSubjects.length} asignaturas válidas`);
+        }
       }
       
     } finally {
@@ -142,28 +166,54 @@ export function HistoryInput({ plan, onContinue }: HistoryInputProps) {
 
   const handleSubjectsChange = (newSubjects: ParsedSubject[]) => {
     setAllSubjects(newSubjects);
+    // Re-validar cuando cambian las asignaturas
+    const validation = SubjectValidatorService.validateSubjects(newSubjects, idealSubjects);
+    setValidationResult(validation);
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (allSubjects.length === 0) {
       toast.error('No hay asignaturas para continuar');
       return;
     }
     
-    // Convertir ParsedSubject a AcademicHistory
-    const academicHistory: AcademicHistory[] = allSubjects.map(subject => ({
-      subjectId: subject.code,
-      periodTaken: subject.period,
-      year: subject.year,
-      grade: subject.grade,
-      status: subject.status === 'APR' ? 'approved' : 
-              subject.status === 'RPB' ? 'failed' : 'notPresented',
-    }));
+    // Mostrar diálogo de validación primero
+    setShowValidationDialog(true);
+  };
+
+  const confirmContinue = async () => {
+    if (!validationResult) return;
     
-    // Por ahora, no detectamos discrepancias hasta tener el plan
-    const discrepancies: Discrepancy[] = [];
+    setIsSubmitting(true);
     
-    onContinue(academicHistory, discrepancies);
+    try {
+      // Si hay asignaturas inválidas, mostrar error
+      if (!validationResult.isValid) {
+        toast.error(`No se puede continuar: ${validationResult.invalidSubjects.length} asignaturas inválidas`);
+        setShowValidationDialog(false);
+        return;
+      }
+    
+      // Convertir ParsedSubject a AcademicHistory
+      const academicHistory: AcademicHistory[] = allSubjects.map(subject => ({
+        subjectId: subject.subjectCode,
+        periodTaken: subject.period,
+        year: subject.year,
+        grade: subject.grade,
+        status: subject.status === 'APR' ? 'approved' : 
+                subject.status === 'RPB' ? 'failed' : 'notPresented',
+      }));
+      
+      
+      setShowValidationDialog(false);
+      //onContinue(academicHistory, discrepancies);
+      
+    } catch (error) {
+      console.error('Error al continuar:', error);
+      toast.error('Error al procesar la solicitud');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const getStatusIcon = (status: ImageFile['status']) => {
@@ -219,25 +269,25 @@ export function HistoryInput({ plan, onContinue }: HistoryInputProps) {
               value={historyFormat}
               onValueChange={(value: HistoryFormat) => {
                 setHistoryFormat(value);
-                // Resetear los datos cuando se cambia el formato
                 setAllSubjects([]);
                 setShowTable(false);
+                setValidationResult(null);
               }}
             >
               <SelectTrigger className="w-full max-w-md">
                 <SelectValue placeholder="Selecciona el formato" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="standard">
-                  Formato Estándar
-                  <span className="text-xs text-muted-foreground ml-2">
-                    (CÓDIGO | NOMBRE | UV | PERÍODO | NOTA | OBS)
-                  </span>
-                </SelectItem>
                 <SelectItem value="webTable">
                   Formato Tabla Web
                   <span className="text-xs text-muted-foreground ml-2">
                     (CÓDIGO | ASIGNATURA | UV | SECCIÓN | AÑO | PERÍODO | CALIFICACIÓN | OBS)
+                  </span>
+                </SelectItem>
+                <SelectItem value="standard">
+                  Formato Estándar
+                  <span className="text-xs text-muted-foreground ml-2">
+                    (CÓDIGO | NOMBRE | UV | PERÍODO | NOTA | OBS)
                   </span>
                 </SelectItem>
               </SelectContent>
@@ -272,7 +322,7 @@ export function HistoryInput({ plan, onContinue }: HistoryInputProps) {
                 </p>
                 {historyFormat === 'webTable' && (
                   <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
-                    💡 Sugerencia: Para el formato Tabla Web, asegúrate de que la imagen capture claramente todas las columnas
+                    Sugerencia: Para el formato Tabla Web, asegúrate de que la imagen capture claramente todas las columnas
                   </p>
                 )}
               </div>
@@ -392,6 +442,125 @@ export function HistoryInput({ plan, onContinue }: HistoryInputProps) {
           )}
         </div>
       </CardContent>
+
+      {/* Diálogo de validación */}
+      <Dialog open={showValidationDialog} onOpenChange={setShowValidationDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="size-5 text-yellow-500" />
+              Validación de Asignaturas
+            </DialogTitle>
+            <DialogDescription>
+              Revisa los resultados de la validación antes de continuar
+            </DialogDescription>
+          </DialogHeader>
+
+          {validationResult && (
+            <div className="space-y-4">
+              {/* Resumen */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="bg-green-50 dark:bg-green-950 p-3 rounded-lg">
+                  <p className="text-sm text-muted-foreground">Válidas</p>
+                  <p className="text-2xl font-bold text-green-600">
+                    {validationResult.validSubjects.length}
+                  </p>
+                </div>
+                <div className="bg-red-50 dark:bg-red-950 p-3 rounded-lg">
+                  <p className="text-sm text-muted-foreground">Inválidas</p>
+                  <p className="text-2xl font-bold text-red-600">
+                    {validationResult.invalidSubjects.length}
+                  </p>
+                </div>
+                <div className="bg-yellow-50 dark:bg-yellow-950 p-3 rounded-lg">
+                  <p className="text-sm text-muted-foreground">Advertencias</p>
+                  <p className="text-2xl font-bold text-yellow-600">
+                    {validationResult.warnings.length}
+                  </p>
+                </div>
+              </div>
+
+              {/* Asignaturas inválidas */}
+              {validationResult.invalidSubjects.length > 0 && (
+                <div>
+                  <h4 className="font-semibold text-red-600 mb-2 flex items-center gap-2">
+                    <AlertCircle className="size-4" />
+                    Asignaturas Inválidas
+                  </h4>
+                  <div className="space-y-2">
+                    {validationResult.invalidSubjects.map((invalid, index) => (
+                      <div key={index} className="bg-red-50 dark:bg-red-950 p-3 rounded-lg">
+                        <p className="font-medium">{invalid.subject.subjectName}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Código: {invalid.subject.subjectCode}
+                        </p>
+                        <p className="text-sm text-red-600 mt-1">{invalid.message}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Advertencias */}
+              {validationResult.warnings.length > 0 && (
+                <div>
+                  <h4 className="font-semibold text-yellow-600 mb-2 flex items-center gap-2">
+                    <AlertTriangle className="size-4" />
+                    Advertencias
+                  </h4>
+                  <div className="space-y-2">
+                    {validationResult.warnings.map((warning, index) => (
+                      <div key={index} className="bg-yellow-50 dark:bg-yellow-950 p-3 rounded-lg">
+                        <p className="font-medium">{warning.subject.subjectName}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Código: {warning.subject.subjectCode}
+                        </p>
+                        <p className="text-sm text-yellow-600 mt-1">{warning.message}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Mensaje de éxito */}
+              {validationResult.isValid && validationResult.warnings.length === 0 && (
+                <div className="bg-green-50 dark:bg-green-950 p-4 rounded-lg">
+                  <p className="text-green-600">
+                    Todas las asignaturas son válidas y no hay advertencias
+                  </p>
+                </div>
+              )}
+
+              {!validationResult.isValid && (
+                <div className="bg-red-50 dark:bg-red-950 p-4 rounded-lg">
+                  <p className="text-red-600">
+                    Corrige las asignaturas inválidas antes de continuar
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowValidationDialog(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={confirmContinue} 
+              disabled={!validationResult?.isValid || isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="size-4 mr-2 animate-spin" />
+                  Procesando...
+                </>
+              ) : (
+                'Continuar'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
