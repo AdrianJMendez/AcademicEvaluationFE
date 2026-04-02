@@ -1,4 +1,5 @@
 // components/EditableSubjectsTable.tsx
+// Asegúrate de que los nombres de campos coincidan con la interfaz ParsedSubject
 import { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/app/components/ui/table';
 import { Input } from '@/app/components/ui/input';
@@ -63,11 +64,14 @@ export function EditableSubjectsTable({ subjects, onSubjectsChange }: EditableSu
   };
 
   const renderEditableCell = (
+    subjectId: string,
     field: keyof ParsedSubject,
     value: string | number,
     type: 'text' | 'number' | 'select'
   ) => {
-    if (editingId !== editData?.id) {
+    const isEditing = editingId === subjectId;
+
+    if (!isEditing) {
       if (field === 'grade' && typeof value === 'number') {
         return `${value}%`;
       }
@@ -82,15 +86,19 @@ export function EditableSubjectsTable({ subjects, onSubjectsChange }: EditableSu
         };
         return statusMap[value as keyof typeof statusMap] || value;
       }
+      if (field === 'subjectCode' || field === 'subjectName') {
+        return value;
+      }
       return value;
     }
 
     if (type === 'text') {
       return (
         <Input
-          value={editData[field] as string}
-          onChange={(e) => setEditData({ ...editData, [field]: e.target.value })}
+          value={editData?.[field] as string || ''}
+          onChange={(e) => setEditData(prev => prev ? { ...prev, [field]: e.target.value } : null)}
           className="w-full"
+          autoFocus={field === 'subjectCode'}
         />
       );
     }
@@ -99,9 +107,11 @@ export function EditableSubjectsTable({ subjects, onSubjectsChange }: EditableSu
       return (
         <Input
           type="number"
-          value={editData[field] as number}
-          onChange={(e) => setEditData({ ...editData, [field]: parseInt(e.target.value) || 0 })}
+          value={editData?.[field] as number || 0}
+          onChange={(e) => setEditData(prev => prev ? { ...prev, [field]: parseInt(e.target.value) || 0 } : null)}
           className="w-full"
+          min={field === 'grade' ? 0 : 1}
+          max={field === 'grade' ? 100 : undefined}
         />
       );
     }
@@ -109,8 +119,8 @@ export function EditableSubjectsTable({ subjects, onSubjectsChange }: EditableSu
     if (type === 'select') {
       return (
         <Select
-          value={editData[field] as string}
-          onValueChange={(value) => setEditData({ ...editData, [field]: value })}
+          value={editData?.[field] as string || 'APR'}
+          onValueChange={(value) => setEditData(prev => prev ? { ...prev, [field]: value } : null)}
         >
           <SelectTrigger>
             <SelectValue />
@@ -155,27 +165,27 @@ export function EditableSubjectsTable({ subjects, onSubjectsChange }: EditableSu
           </TableHeader>
           <TableBody>
             {subjects.map((subject) => (
-              <TableRow key={subject.id}>
+              <TableRow key={subject.id} className={editingId === subject.id ? 'bg-muted/50' : ''}>
                 <TableCell>
-                  {renderEditableCell('subjectCode', subject.subjectCode, 'text')}
+                  {renderEditableCell(subject.id, 'subjectCode', subject.subjectCode, 'text')}
                 </TableCell>
                 <TableCell>
-                  {renderEditableCell('subjectName', subject.subjectName, 'text')}
+                  {renderEditableCell(subject.id, 'subjectName', subject.subjectName, 'text')}
                 </TableCell>
                 <TableCell className="text-center">
-                  {renderEditableCell('credits', subject.credits, 'number')}
+                  {renderEditableCell(subject.id, 'credits', subject.credits, 'number')}
                 </TableCell>
                 <TableCell className="text-center">
-                  {renderEditableCell('period', subject.period, 'number')}
+                  {renderEditableCell(subject.id, 'period', subject.period, 'number')}
                 </TableCell>
                 <TableCell className="text-center">
-                  {renderEditableCell('year', subject.year, 'number')}
+                  {renderEditableCell(subject.id, 'year', subject.year, 'number')}
                 </TableCell>
                 <TableCell className="text-center">
-                  {renderEditableCell('grade', subject.grade, 'number')}
+                  {renderEditableCell(subject.id, 'grade', subject.grade, 'number')}
                 </TableCell>
                 <TableCell className="text-center">
-                  {renderEditableCell('status', subject.status, 'select')}
+                  {renderEditableCell(subject.id, 'status', subject.status, 'select')}
                 </TableCell>
                 <TableCell>
                   {editingId === subject.id ? (
