@@ -10,9 +10,9 @@ export interface Response {
 }
 
 // const API_BASE_URL = 'http://localhost:3000';
-const API_BASE_URL = 'https://academicevaluationbe-production.up.railway.app';
+const API_BASE_URL = 'https://academicevaluation.mooo.com';
 
-const api = axios.create({
+const api = axios.create({  
   baseURL: API_BASE_URL,
   timeout: 10000,
   headers: {
