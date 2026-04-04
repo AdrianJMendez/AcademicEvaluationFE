@@ -51,6 +51,12 @@ class HistoryParserService {
     
     let normalized = code.toUpperCase();
     const originalCode = normalized;
+
+    // Regla especial: Si el primer carácter es 'M' y el código tiene menos de 5 caracteres, duplicar la M
+    if (normalized.length > 0 && normalized[0] === 'M' && normalized.length < 5) {
+      normalized = 'M' + normalized;
+      console.log(`Código duplicado (M inicial): ${originalCode} -> ${normalized}`);
+    }
     
     // Convertir primeros dos caracteres (si son números, convertirlos a letras)
     let prefix = '';
@@ -75,7 +81,7 @@ class HistoryParserService {
         const secondChar = prefix[1];
         if (secondChar === '1') {
           prefix = prefix[0] + 'I';
-        } else if (secondChar === '8' || secondChar === '9') {
+        } else if (secondChar === '6' || secondChar === '8' || secondChar === '9') {
           prefix = prefix[0] + 'S';
         }
       }
