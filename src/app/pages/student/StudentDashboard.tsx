@@ -46,9 +46,11 @@ export function StudentDashboard() {
   },[]);
 
   useEffect(()=>{
-    studentService.getRequestByStatusAndCareerForStudent(activeStatus,activeCareer,page,size,sort).then((response)=>{
-      if(!response.hasError){
-        setRequests(response.data);
+    studentService.getRequestByStatusAndCareerForStudent(activeStatus, activeCareer, page, size, sort).then((response) => {
+      if (!response.hasError) {
+        setRequests(response.data.data ?? []); // ✅ extrae el array
+      } else {
+        setRequests([]); // limpia si hay error
       }
     });
   },[activeCareer,activeStatus,page,size,sort]);

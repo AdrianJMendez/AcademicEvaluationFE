@@ -25,6 +25,18 @@ class CareerService {
     }
   }
 
+  async getCareerPlanById(idCareer:number): Promise<Response> {
+    try {
+      const response = await api.get(`${this.basePath}/${idCareer}/plan`);
+      
+      return response.data;
+
+    } catch (error: any) {
+      console.log("error: ", error);
+      return error.response?.data;
+    }
+  }
+
   async evalateHistory(payload:any): Promise<Response> {
     try {
       const response = await api.post(`${this.basePath}/evaluate`,payload);

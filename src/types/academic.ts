@@ -18,7 +18,7 @@ export interface Career {
   yearLength: number;
   totalPeriods: number;
   isActive : boolean;
-  Subjects: Subject[];
+  Subjects?: Subject[];
   StudentCareer? : StudentCareer;
 }
 
@@ -42,9 +42,12 @@ export interface User {
   idUser: string;
   email: string;
   name: string;
-  role: 'student' | 'employee';
+  role: 'student' | 'employee' | 'admin';
   isActive: boolean;
   isVerified: boolean;
+  idRole?: number;
+  idStudent?: number;
+  idEmployee?: number;
   accountNumber?: string;
   employeeCode?: string;
 }
