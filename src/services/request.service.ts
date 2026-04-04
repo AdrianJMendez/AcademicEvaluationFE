@@ -79,6 +79,18 @@ class RequestService {
       return error.response?.data;
     }
   }
+
+  async createRequest(payload:any): Promise<Response> {
+    try {
+      const response = await api.post(`${this.basePath}/`, payload);
+      
+      return response.data;
+
+    } catch (error: any) {
+      console.log("error: ", error);
+      return error.response?.data;
+    }
+  }
 }
 
 export default RequestService.getInstance();

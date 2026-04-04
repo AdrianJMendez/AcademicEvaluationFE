@@ -7,7 +7,7 @@ export interface DiscrepancyProp {
 }
 
 export interface JustificationProp {
-    idDiscrepancyProp: number,
+    discrepancyProps: number[],
     title : string,
     description: string;
 }
