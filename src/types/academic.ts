@@ -29,50 +29,6 @@ export interface Career {
 //   grade?: number;
 // }
 
-export interface Discrepancy {
-  idDiscrepancy: string;
-  type: 'delay' | 'prerequisite-skip' | 'order-change';
-  subjectId: string;
-  subjectName: string;
-  expectedPeriod: number;
-  actualPeriod: number;
-  description: string;
-}
-
-export interface Justification {
-  discrepancyId: string;
-  title: string;
-  description: string;
-  impactLevel?: 'no-impact' | 'low-impact' | 'high-impact'; // Asignado por el empleado
-  documents: File[];
-  images: File[];
-  employeeComments?: string;
-  employeeDocuments?: File[];
-}
-
-//export type RequestStatus = 'pending' | 'in-review' | 'reviewed';
-
-export interface Status {
-  idStatus : number;
-  statusName : string;
-  idStatusType: number;
-}
-
-export interface Request {
-  idRequest: number;
-  idStudentCareer: number;
-  idStatus: number;
-  discrepancies?: Discrepancy[];
-  justifications?: Justification[];
-  submittedAt: Date;
-  reviewedAt?: Date;
-  idEmployeeReviewer?: number;
-  finalScore?: number;
-  generatedReportUrl?: string;
-  notes?: string;
-  StudentCareer?: StudentCareer;
-  Status?: Status;
-}
 
 export interface StudentCareer {
   idStudentCareer : number;
@@ -101,13 +57,4 @@ export interface Student {
   Careers?: Career[];
 }
 
-export interface ScoreResult {
-  finalScore: number;
-  totalDelay: number;
-  discrepanciesCount: number;
-  breakdown: {
-    baseScore: number;
-    delayPenalty: number;
-    impactAdjustment: number;
-  };
-}
+

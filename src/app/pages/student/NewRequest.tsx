@@ -10,8 +10,8 @@ import { PlanVisualizationStudent } from '@/app/components/student/PlanVisualiza
 import { HistoryInput } from '@/app/components/student/HistoryInput';
 import { JustificationsInput } from '@/app/components/student/JustificationsInput';
 import { toast } from 'sonner';
-import type { OfficialPlan, AcademicHistory, Justification, Discrepancy } from '@/types/academic';
 import { Career, Subject } from '../../../types/academic';
+import { DiscrepancyProp, JustificationProp } from '../../../types/request';
 
 type Step = 'select-career' | 'view-plan' | 'input-history' | 'justifications';
 
@@ -22,29 +22,22 @@ export function NewRequest() {
   const [step, setStep] = useState<Step>('select-career');
   const [selectedPlan, setSelectedPlan] = useState<Career | null>(null);
   const [idealSubjects, setIdealSubjects] = useState<Subject[] | undefined>();
-  const [history, setHistory] = useState<AcademicHistory[]>([]);
-  const [discrepancies, setDiscrepancies] = useState<Discrepancy[]>([]);
-  const [justifications, setJustifications] = useState<Justification[]>([]);
+  //const [history, setHistory] = useState<AcademicHistory[]>([]);
+  const [discrepancies, setDiscrepancies] = useState<DiscrepancyProp[]>([]);
+  const [justifications, setJustifications] = useState<JustificationProp[]>([]);
 
   const handleSubmit = () => {
     if (!selectedPlan || !user) return;
 
-    const newRequest = {
-      id: `req-${Date.now()}`,
-      studentId: user.id,
-      studentName: user.name,
-      studentCode: user.studentCode || '',
-      careerId: selectedPlan.idCareer,
-      careerName: selectedPlan.careerName,
-      officialPlan: selectedPlan,
-      studentHistory: history,
+    const payload = {
+      idStudentCareer: selectedPlan.StudentCareer?.idStudentCareer,
       discrepancies,
       justifications,
-      status: 'pending' as const,
-      submittedAt: new Date(),
     };
 
-    addRequest(newRequest);
+    console.log(payload);
+
+    //addRequest(newRequest);
     toast.success('Solicitud enviada correctamente');
     navigate('/student');
   };
@@ -85,8 +78,8 @@ export function NewRequest() {
           <HistoryInput
             idealSubjects={idealSubjects}
             plan = {selectedPlan}
-            onContinue={(hist, discrep) => {
-              setHistory(hist);
+            onContinue={(discrep) => {
+              //setHistory(hist);
               setDiscrepancies(discrep);
               setStep('justifications');
             }}
@@ -98,6 +91,7 @@ export function NewRequest() {
             discrepancies={discrepancies}
             onSubmit={(justs) => {
               setJustifications(justs);
+              console.log(justs);
               handleSubmit();
             }}
           />

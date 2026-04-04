@@ -37,7 +37,7 @@ import careerService from '../../../services/career.service';
 interface HistoryInputProps {
   idealSubjects: Subject[];
   plan : Career;
-  onContinue: (history: AcademicHistory[], discrepancies: Discrepancy[]) => void;
+  onContinue: ( discrepancies: Discrepancy[]) => void;
 }
 
 interface ImageFile {
@@ -228,7 +228,7 @@ export function HistoryInput({idealSubjects, plan, onContinue }: HistoryInputPro
       .then((response)=>{
         if(!response.hasError){
           console.log("response", response);
-          onContinue(academicHistory,response.data);
+          onContinue(response.data);
         }
       })
       .finally(()=>{
