@@ -1,11 +1,13 @@
 import { createBrowserRouter, Navigate } from 'react-router';
-import { LoginPage } from './pages/LoginPage';
+import { LoginPage } from './pages/auth/LoginPage';
 import { StudentDashboard } from './pages/student/StudentDashboard';
 import { NewRequest } from './pages/student/NewRequest';
 import { RequestDetail } from './pages/student/RequestDetail';
 import { EmployeeDashboard } from './pages/employee/EmployeeDashboard';
 import { ReviewRequest } from './pages/employee/ReviewRequest';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { RegisterPage } from './pages/auth/RegisterPage';
+import { VerifyEmailPage } from './pages/auth/VerifyEmailPage';
 
 export const router = createBrowserRouter([
   {
@@ -15,6 +17,14 @@ export const router = createBrowserRouter([
   {
     path: '/login',
     element: <LoginPage />,
+  },
+  {
+    path: '/register',
+    element: <RegisterPage />,
+  },
+    {
+    path: '/verify-email',
+    element: <VerifyEmailPage />,
   },
   {
     path: '/student',
