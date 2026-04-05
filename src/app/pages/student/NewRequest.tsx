@@ -62,8 +62,20 @@ export function NewRequest() {
 
       const parsedImages = await Promise.all(parsedImagesPromises);
 
+      const mappedSubjects = history.map((subject)=>{
+        return {
+          subjectCode: subject.subjectCode,
+          subjectName: subject.subjectName,
+          period: subject.period,
+          year: subject.year,
+          credits: subject.credits,
+          score: subject.grade
+        }
+      });
+
       const payload = {
         idStudentCareer: selectedPlan.StudentCareer?.idStudentCareer,
+        academicHistory: mappedSubjects,
         discrepancies,
         justifications: justs,
         images: parsedImages
