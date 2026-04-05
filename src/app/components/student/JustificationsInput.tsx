@@ -1,17 +1,19 @@
-import { useState } from 'react';
+//JustificationInput.tsx
+
+import { useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { Textarea } from '@/app/components/ui/textarea';
 import { Badge } from '@/app/components/ui/badge';
-import { FileText, Send, AlertTriangle, Info, XCircle, ArrowLeft, Plus, Trash2 } from 'lucide-react';
+import { FileText, Send, AlertTriangle, Info, XCircle, ArrowLeft, Plus, Trash2, Upload, Image as ImageIcon, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { DiscrepancyProp, JustificationProp } from '../../../types/request';
 
 interface JustificationsInputProps {
   discrepancies: DiscrepancyProp[];
-  onSubmit: (justifications: JustificationProp[]) => void;
+  onSubmit: (justifications: JustificationProp[], images: File[]) => void;
   onBack: () => void;
 }
 
@@ -20,6 +22,12 @@ interface DynamicJustification {
   title: string;
   description: string;
   selectedDiscrepancies: number[]; // índices de las discrepancias seleccionadas
+}
+
+interface ImageFile {
+  id: string;
+  file: File;
+  preview: string;
 }
 
 export function JustificationsInput({ discrepancies, onSubmit, onBack }: JustificationsInputProps) {
@@ -40,6 +48,10 @@ export function JustificationsInput({ discrepancies, onSubmit, onBack }: Justifi
       selectedDiscrepancies: []
     }
   ]);
+
+  // Estado para imágenes
+  const [images, setImages] = useState<ImageFile[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Función para agregar una nueva justificación
   const addJustification = () => {
@@ -110,6 +122,51 @@ export function JustificationsInput({ discrepancies, onSubmit, onBack }: Justifi
     );
   };
 
+  // Función para manejar la subida de imágenes
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    
+    // Validar tipo de archivo
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    
+    const validFiles = files.filter(file => {
+      if (!validTypes.includes(file.type)) {
+        toast.error(`${file.name} no es un formato de imagen válido`);
+        return false;
+      }
+      if (file.size > maxSize) {
+        toast.error(`${file.name} excede el tamaño máximo de 5MB`);
+        return false;
+      }
+      return true;
+    });
+
+    const newImages = validFiles.map(file => ({
+      id: crypto.randomUUID(),
+      file,
+      preview: URL.createObjectURL(file)
+    }));
+
+    setImages(prev => [...prev, ...newImages]);
+    
+    // Limpiar el input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Función para eliminar una imagen
+  const removeImage = (id: string) => {
+    setImages(prev => {
+      const imageToRemove = prev.find(img => img.id === id);
+      if (imageToRemove) {
+        URL.revokeObjectURL(imageToRemove.preview);
+      }
+      return prev.filter(img => img.id !== id);
+    });
+  };
+
   const handleSubmit = () => {
     // Si hay error crítico, no permitir continuar
     if (hasCriticalError) {
@@ -119,7 +176,7 @@ export function JustificationsInput({ discrepancies, onSubmit, onBack }: Justifi
 
     // Si solo hay observaciones, enviar array vacío
     if (hasOnlyObservations) {
-      onSubmit([]);
+      onSubmit([], []);
       toast.success('No hay discrepancias que justificar');
       return;
     }
@@ -143,16 +200,15 @@ export function JustificationsInput({ discrepancies, onSubmit, onBack }: Justifi
       return;
     }
 
-    // Verificar que no haya discrepancias duplicadas en justificaciones (esto es opcional, pueden compartirse)
-    // Transformar al formato esperado por el onSubmit
     const formattedJustifications: JustificationProp[] = justifications.map(j => ({
-      discrepancyProps: j.selectedDiscrepancies, // Ahora puede ser un array de índices
+      discrepancyProps: j.selectedDiscrepancies,
       title: j.title,
       description: j.description,
     }));
 
-    console.log("justifications", formattedJustifications);
-    onSubmit(formattedJustifications);
+    // Enviar las imágenes como archivos
+    const imageFiles = images.map(img => img.file);
+    onSubmit(formattedJustifications, imageFiles);
   };
 
   // Función para obtener el color del badge según el tipo
@@ -310,8 +366,78 @@ export function JustificationsInput({ discrepancies, onSubmit, onBack }: Justifi
             </div>
           </div>
 
+          {/* Sección de imágenes */}
+          <div className="space-y-4 border-t pt-6">
+            <div>
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                <ImageIcon className="size-5" />
+                Documentos de Soporte (Opcional)
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Sube imágenes, capturas de pantalla o documentos que respalden tus justificaciones.
+                Formatos permitidos: JPG, PNG, GIF, WEBP (Máx. 5MB por archivo)
+              </p>
+            </div>
+
+            {/* Área de subida de imágenes */}
+            <div className="border-2 border-dashed rounded-lg p-6 text-center hover:bg-muted/50 transition-colors">
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                onChange={handleImageUpload}
+                className="hidden"
+                id="image-upload"
+              />
+              <label
+                htmlFor="image-upload"
+                className="cursor-pointer flex flex-col items-center gap-2"
+              >
+                <Upload className="size-10 text-muted-foreground" />
+                <div>
+                  <Button type="button" variant="outline" size="sm">
+                    Seleccionar archivos
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  o arrastra y suelta los archivos aquí
+                </p>
+              </label>
+            </div>
+
+            {/* Vista previa de imágenes */}
+            {images.length > 0 && (
+              <div>
+                <h4 className="font-medium mb-3">Imágenes subidas ({images.length})</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {images.map((image) => (
+                    <div key={image.id} className="relative group">
+                      <div className="relative aspect-square rounded-lg overflow-hidden border bg-muted">
+                        <img
+                          src={image.preview}
+                          alt={image.file.name}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          onClick={() => removeImage(image.id)}
+                          className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
+                        >
+                          <X className="size-4" />
+                        </button>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1 truncate">
+                        {image.file.name}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Justificaciones dinámicas */}
-          <div className="space-y-4">
+          <div className="space-y-4 border-t pt-6">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-lg">Justificaciones:</h3>
               <Button type="button" variant="outline" size="sm" onClick={addJustification}>
@@ -338,7 +464,7 @@ export function JustificationsInput({ discrepancies, onSubmit, onBack }: Justifi
                 {/* Selección de discrepancias */}
                 <div>
                   <Label>Discrepancias que cubre esta justificación:</Label>
-                  <div className="mt-2 space-y-2">
+                  <div className="mt-2 space-y-2 max-h-60 overflow-y-auto border rounded-lg p-2">
                     {discrepanciesToJustify.map((disc, discIdx) => (
                       <label key={discIdx} className="flex items-center gap-3 p-2 hover:bg-muted/50 rounded cursor-pointer">
                         <input
@@ -419,6 +545,7 @@ export function JustificationsInput({ discrepancies, onSubmit, onBack }: Justifi
                   Puedes agrupar varias discrepancias en una misma justificación si están relacionadas.
                   Cada discrepancia debe estar cubierta por al menos una justificación.
                   El nivel de afectación será evaluado por el personal administrativo.
+                  Las imágenes subidas servirán como evidencia de soporte para todas tus justificaciones.
                 </p>
               </div>
             </div>

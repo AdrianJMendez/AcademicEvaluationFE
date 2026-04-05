@@ -5,10 +5,16 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
-import { ArrowLeft, FileText, Download, Clock, CheckCircle2, Eye, AlertCircle, FileWarning, MessageCircle } from 'lucide-react';
+import { ArrowLeft, FileText, Download, Clock, CheckCircle2, Eye, AlertCircle, FileWarning, MessageCircle, Image as ImageIcon, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import studentService from '../../../services/student.service';
 import { Request, Discrepancy, Justification } from '../../../types/request';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/app/components/ui/dialog';
 
 export function RequestDetail() {
   const navigate = useNavigate();
@@ -17,6 +23,8 @@ export function RequestDetail() {
 
   const [request, setRequest] = useState<Request>();
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchRequestDetail = async () => {
@@ -37,6 +45,11 @@ export function RequestDetail() {
       fetchRequestDetail();
     }
   }, [id]);
+
+  const handleImageClick = (imageUrl: string) => {
+    setSelectedImage(imageUrl);
+    setIsImageDialogOpen(true);
+  };
 
   if (isLoading) {
     return (
@@ -149,7 +162,7 @@ export function RequestDetail() {
   // Función para verificar si es una observación (sin discrepancias reales)
   const isObservationOnly = () => {
     return request.Discrepancies?.length === 1 && 
-           request.Discrepancies[0]?.type === 'Observacion';
+           request.Discrepancies[0]?.DiscrepancyType.typeName === 'Observacion';
   };
 
   // Función para obtener el color del badge según el tipo
@@ -221,6 +234,39 @@ export function RequestDetail() {
                 </div>
               </div>
             </div>
+
+            {/* Sección de Imágenes de la Solicitud */}
+            {request.RequestImages && request.RequestImages.length > 0 && (
+              <div>
+                <h3 className="font-semibold mb-3 flex items-center gap-2">
+                  <ImageIcon className="size-5" />
+                  Imágenes Adjuntas ({request.RequestImages.length})
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {request.RequestImages.map((image) => (
+                    <div
+                      key={image.idRequestImage}
+                      className="relative group cursor-pointer overflow-hidden rounded-lg border bg-muted/50 hover:shadow-lg transition-all"
+                      onClick={() => handleImageClick(image.imageUrl)}
+                    >
+                      <div className="aspect-square">
+                        <img
+                          src={image.thumbnailUrl || image.imageUrl}
+                          alt={image.imageName}
+                          className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                        />
+                      </div>
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <Eye className="size-6 text-white" />
+                      </div>
+                      <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white text-xs p-1 truncate">
+                        {image.imageName}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div>
               <h3 className="font-semibold mb-3">
@@ -362,6 +408,31 @@ export function RequestDetail() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Modal para ver imagen en tamaño completo */}
+      <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
+        <DialogContent className="max-w-5xl w-full p-0 bg-black/95">
+          <DialogHeader className="absolute top-2 right-2 z-10">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-white/20"
+              onClick={() => setIsImageDialogOpen(false)}
+            >
+              <X className="size-5" />
+            </Button>
+          </DialogHeader>
+          {selectedImage && (
+            <div className="flex items-center justify-center min-h-[80vh] p-4">
+              <img
+                src={selectedImage}
+                alt="Imagen de la solicitud"
+                className="max-w-full max-h-[80vh] object-contain"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

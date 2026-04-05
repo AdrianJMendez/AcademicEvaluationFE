@@ -12,6 +12,14 @@ export interface JustificationProp {
     description: string;
 }
 
+
+export interface RequestImage {
+  idRequestImage : string,
+  idRequest : string,
+  imageName: string,
+  imageUrl: string,
+  thumbnailUrl: string
+}
 export interface DiscrepancyType {
   idDiscrepancyType: string;
   typeName : string;
@@ -61,6 +69,7 @@ export interface Request {
   Status?: Status;
   Discrepancies: Discrepancy[];
   Employee?: EmployeeReviewer;
+  RequestImages: RequestImage[];
 }
 
 export interface ScoreResult {
