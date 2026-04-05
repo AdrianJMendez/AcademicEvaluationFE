@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router';
 import { useAuth } from '@/contexts/AuthContext';
 import requestService from '@/services/request.service';
 import careerService from '@/services/career.service';
+import { API_BASE_URL } from '@/lib/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
@@ -16,7 +17,9 @@ import {
   CheckCircle,
   ChevronLeft,
   ChevronRight,
+  Download,
   FileText,
+  Image as ImageIcon,
   Loader2,
   LockKeyhole,
   Sparkles,
@@ -118,6 +121,18 @@ function groupSubjectsByPeriod(plan: Career | null) {
   return Object.entries(grouped).sort(([a], [b]) => Number(a) - Number(b));
 }
 
+function resolveAssetUrl(assetUrl: string | null | undefined) {
+  if (!assetUrl) {
+    return null;
+  }
+
+  if (assetUrl.startsWith('http://') || assetUrl.startsWith('https://')) {
+    return assetUrl;
+  }
+
+  return `${API_BASE_URL}${assetUrl.startsWith('/') ? assetUrl : `/${assetUrl}`}`;
+}
+
 export function ReviewRequest() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -128,6 +143,8 @@ export function ReviewRequest() {
   const [isLoading, setIsLoading] = useState(true);
   const [isTaking, setIsTaking] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const [isDownloadingReport, setIsDownloadingReport] = useState(false);
   const [isPlanOpen, setIsPlanOpen] = useState(false);
   const [isPlanLoading, setIsPlanLoading] = useState(false);
   const [careerPlan, setCareerPlan] = useState<Career | null>(null);
@@ -258,6 +275,56 @@ export function ReviewRequest() {
     }
   };
 
+  const handleGenerateReport = async () => {
+    if (!id) {
+      return;
+    }
+
+    setIsGeneratingReport(true);
+
+    try {
+      const response = await requestService.generateEmployeeRequestReport(id);
+
+      if (response?.hasError) {
+        toast.error(response.meta.message);
+        return;
+      }
+
+      setRequest(response.data);
+      toast.success('El informe se genero correctamente.');
+    } finally {
+      setIsGeneratingReport(false);
+    }
+  };
+
+  const handleDownloadReport = async () => {
+    if (!id) {
+      return;
+    }
+
+    setIsDownloadingReport(true);
+
+    try {
+      const response = await requestService.downloadEmployeeRequestReport(id);
+
+      if (response.hasError) {
+        toast.error(response.message);
+        return;
+      }
+
+      const downloadUrl = window.URL.createObjectURL(response.blob);
+      const anchor = document.createElement('a');
+      anchor.href = downloadUrl;
+      anchor.download = response.fileName;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    } finally {
+      setIsDownloadingReport(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[linear-gradient(180deg,_#fafaf9_0%,_#ffffff_55%,_#f8fafc_100%)]">
@@ -291,6 +358,7 @@ export function ReviewRequest() {
   const totalSteps = reviewSteps.length;
   const allJustificationsReviewed =
     totalSteps === 0 || Object.values(editableJustifications).every((item) => Boolean(item.impactLevel));
+  const hasGeneratedReport = Boolean(request.generatedReport);
 
   return (
     <>
@@ -383,6 +451,48 @@ export function ReviewRequest() {
                     <BookOpen className="mr-2 size-4" />
                     Ver plan de estudio original
                   </Button>
+
+                  {hasGeneratedReport && (
+                    <Button
+                      variant="outline"
+                      className="rounded-2xl border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
+                      onClick={() => void handleDownloadReport()}
+                      disabled={isDownloadingReport}
+                    >
+                      {isDownloadingReport ? (
+                        <>
+                          <Loader2 className="mr-2 size-4 animate-spin" />
+                          Descargando informe...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="mr-2 size-4" />
+                          Descargar informe PDF
+                        </>
+                      )}
+                    </Button>
+                  )}
+
+                  {requestStatus === 'reviewed' && (
+                    <Button
+                      variant="outline"
+                      className="rounded-2xl"
+                      onClick={() => void handleGenerateReport()}
+                      disabled={isGeneratingReport}
+                    >
+                      {isGeneratingReport ? (
+                        <>
+                          <Loader2 className="mr-2 size-4 animate-spin" />
+                          Generando informe...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="mr-2 size-4" />
+                          {hasGeneratedReport ? 'Regenerar informe PDF' : 'Generar informe PDF'}
+                        </>
+                      )}
+                    </Button>
+                  )}
 
                   {requestStatus === 'reviewed' && (
                     <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
@@ -685,6 +795,53 @@ export function ReviewRequest() {
                     ))}
                   </div>
                 )}
+
+                <div className="space-y-4 border-t border-slate-100 pt-6">
+                  <div className="flex items-center gap-2">
+                    <ImageIcon className="size-5 text-slate-500" />
+                    <div>
+                      <p className="text-sm font-medium text-slate-900">Pruebas adjuntas del estudiante</p>
+                      <p className="text-sm text-slate-500">
+                        Evidencias visuales asociadas a la solicitud para consulta administrativa.
+                      </p>
+                    </div>
+                  </div>
+
+                  {request.requestImages.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 px-5 py-8 text-center">
+                      <p className="text-sm text-slate-500">No hay imagenes registradas para esta solicitud.</p>
+                    </div>
+                  ) : (
+                    <div className="grid gap-4 md:grid-cols-2">
+                      {request.requestImages.map((image) => (
+                        <div key={image.idRequestImage} className="overflow-hidden rounded-3xl border border-slate-200 bg-slate-50/70">
+                          <div className="aspect-[4/3] bg-slate-100">
+                            <img
+                              src={resolveAssetUrl(image.imageUrl) ?? image.imageUrl}
+                              alt={image.imageName}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                          <div className="space-y-2 p-4">
+                            <p className="font-medium text-slate-900">{image.imageName}</p>
+                            <p className="line-clamp-2 text-xs text-slate-500">{image.imageUrl}</p>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="rounded-xl"
+                              onClick={() =>
+                                window.open(resolveAssetUrl(image.imageUrl) ?? image.imageUrl, '_blank', 'noopener,noreferrer')
+                              }
+                            >
+                              Ver imagen
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
                 {canReviewRequest && (
                   <div className="flex flex-col gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:items-center sm:justify-between">

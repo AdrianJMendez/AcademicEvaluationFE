@@ -1,5 +1,5 @@
 // app/components/student/HistoryInput.tsx
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
 import { Upload, Loader2, FileText, AlertCircle, Eye, HelpCircle, X, AlertTriangle } from 'lucide-react';
@@ -35,9 +35,10 @@ import { Career, Subject } from '../../../types/academic';
 import careerService from '../../../services/career.service';
 
 interface HistoryInputProps {
+  history?: ParsedSubject[];
   idealSubjects: Subject[];
   plan : Career;
-  onContinue: ( discrepancies: Discrepancy[]) => void;
+  onContinue: (hist: ParsedSubject[] ,discrepancies: Discrepancy[]) => void;
 }
 
 interface ImageFile {
@@ -50,7 +51,7 @@ interface ImageFile {
   parsedSubjects?: ParsedSubject[];
 }
 
-export function HistoryInput({idealSubjects, plan, onContinue }: HistoryInputProps) {
+export function HistoryInput({history ,idealSubjects, plan, onContinue }: HistoryInputProps) {
   const [images, setImages] = useState<ImageFile[]>([]);
   const [allSubjects, setAllSubjects] = useState<ParsedSubject[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -60,6 +61,13 @@ export function HistoryInput({idealSubjects, plan, onContinue }: HistoryInputPro
   const [showValidationDialog, setShowValidationDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (history && history.length > 0) {
+      setAllSubjects(history);
+      setShowTable(true);
+    }
+  }, [history]);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -228,7 +236,7 @@ export function HistoryInput({idealSubjects, plan, onContinue }: HistoryInputPro
       .then((response)=>{
         if(!response.hasError){
           console.log("response", response);
-          onContinue(response.data);
+          onContinue(allSubjects,response.data);
         }
       })
       .finally(()=>{

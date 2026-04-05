@@ -7,32 +7,45 @@ export interface DiscrepancyProp {
 }
 
 export interface JustificationProp {
-    idDiscrepancyProp: number,
+    discrepancyProps: number[],
     title : string,
     description: string;
 }
 
+
+export interface RequestImage {
+  idRequestImage : string,
+  idRequest : string,
+  imageName: string,
+  imageUrl: string,
+  thumbnailUrl: string
+}
+export interface DiscrepancyType {
+  idDiscrepancyType: string;
+  typeName : string;
+}
+
 export interface Discrepancy {
   idDiscrepancy?: string;
-  type: string;
+  idDiscrepancyType: string;
   expectedPeriod?: number;
   actualPeriod?: number;
   description: string;
   severity: string;
+  Justifications: Justification[];
+  DiscrepancyType: DiscrepancyType;
 }
 
 export interface Justification {
-  idDiscrepancy: string;
+  idJustification: string;
   title: string;
   description: string;
-  impactLevel?: 'no-impact' | 'low-impact' | 'high-impact'; // Asignado por el empleado
-  documents: File[];
-  images: File[];
+  impactLevel?: string;      //'no-impact' | 'low-impact' | 'high-impact'; // Asignado por el empleado
+  documents?: File[];
+  images?: File[];
   employeeComments?: string;
   employeeDocuments?: File[];
 }
-
-//export type RequestStatus = 'pending' | 'in-review' | 'reviewed';
 
 export interface Status {
   idStatus : number;
@@ -54,6 +67,9 @@ export interface Request {
   notes?: string;
   StudentCareer?: StudentCareer;
   Status?: Status;
+  Discrepancies: Discrepancy[];
+  Employee?: EmployeeReviewer;
+  RequestImages: RequestImage[];
 }
 
 export interface ScoreResult {
@@ -111,6 +127,13 @@ export interface EmployeeRequestJustification {
   reviewedAt: string | Date | null;
 }
 
+export interface EmployeeRequestImage {
+  idRequestImage: number;
+  imageName: string;
+  thumbnailUrl?: string | null;
+  imageUrl: string;
+}
+
 export interface EmployeeRequestDiscrepancy {
   idDiscrepancy: number;
   expectedPeriod: number | null;
@@ -137,6 +160,13 @@ export interface EmployeeScoreCalculation {
   calculatedAt: string | Date;
 }
 
+export interface EmployeeGeneratedReport {
+  idRequestReport: number;
+  fileName: string;
+  mimeType: string;
+  generatedAt: string | Date;
+}
+
 export interface EmployeeRequestSummary {
   idRequest: number;
   submittedAt: string | Date;
@@ -146,6 +176,7 @@ export interface EmployeeRequestSummary {
   student: EmployeeRequestStudent | null;
   career: EmployeeRequestCareer | null;
   reviewer: EmployeeReviewer | null;
+  generatedReport: EmployeeGeneratedReport | null;
   discrepancyCount: number;
   justificationCount: number;
 }
@@ -156,12 +187,14 @@ export interface EmployeeRequestDetail {
   reviewedAt: string | Date | null;
   finalScore: number | null;
   generatedReportUrl: string | null;
+  generatedReport: EmployeeGeneratedReport | null;
   notes: string | null;
   status: EmployeeRequestStatus | null;
   student: EmployeeRequestStudent | null;
   career: EmployeeRequestCareer | null;
   reviewer: EmployeeReviewer | null;
   discrepancies: EmployeeRequestDiscrepancy[];
+  requestImages: EmployeeRequestImage[];
   scoreCalculation: EmployeeScoreCalculation | null;
 }
 
