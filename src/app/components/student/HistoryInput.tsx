@@ -203,17 +203,6 @@ export function HistoryInput({history ,idealSubjects, plan, onContinue }: Histor
         setShowValidationDialog(false);
         return;
       }
-    
-      // Convertir ParsedSubject a AcademicHistory
-      const academicHistory: AcademicHistory[] = allSubjects.map(subject => ({
-        subjectId: subject.subjectCode,
-        periodTaken: subject.period,
-        year: subject.year,
-        grade: subject.grade,
-        status: subject.status === 'APR' ? 'approved' : 
-                subject.status === 'RPB' ? 'failed' : 'notPresented',
-      }));
-
       //EVALUAR PLAN DE ESTUDIOS CON EL ORIGINAL PARA DETECTAR DISCREPANCIAS
 
       const mappedSubjects = allSubjects.map((s)=>{
@@ -221,7 +210,8 @@ export function HistoryInput({history ,idealSubjects, plan, onContinue }: Histor
           subjectCode : s.subjectCode,
           subjectName : s.subjectName,
           period: s.period,
-          year: s.year
+          year: s.year,
+
         }
       });
 
