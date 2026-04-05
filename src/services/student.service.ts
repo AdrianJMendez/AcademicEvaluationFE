@@ -55,6 +55,20 @@ class StudentService {
     }
   }
 
+  async getRequestDetailForStudent(
+    idRequest: number
+  ): Promise<Response> {
+    try {
+      const response = await api.get(`${this.basePath}/request/student/get/detail/${idRequest}`);
+      
+      return response.data;
+
+    } catch (error: any) {
+      console.log("error: ", error);
+      return error.response?.data;
+    }
+  }
+
 }
 
 export default StudentService.getInstance();

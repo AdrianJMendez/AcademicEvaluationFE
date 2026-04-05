@@ -12,27 +12,32 @@ export interface JustificationProp {
     description: string;
 }
 
+export interface DiscrepancyType {
+  idDiscrepancyType: string;
+  typeName : string;
+}
+
 export interface Discrepancy {
   idDiscrepancy?: string;
-  type: string;
+  idDiscrepancyType: string;
   expectedPeriod?: number;
   actualPeriod?: number;
   description: string;
   severity: string;
+  Justifications: Justification[];
+  DiscrepancyType: DiscrepancyType;
 }
 
 export interface Justification {
-  idDiscrepancy: string;
+  idJustification: string;
   title: string;
   description: string;
-  impactLevel?: 'no-impact' | 'low-impact' | 'high-impact'; // Asignado por el empleado
-  documents: File[];
-  images: File[];
+  impactLevel?: string;      //'no-impact' | 'low-impact' | 'high-impact'; // Asignado por el empleado
+  documents?: File[];
+  images?: File[];
   employeeComments?: string;
   employeeDocuments?: File[];
 }
-
-//export type RequestStatus = 'pending' | 'in-review' | 'reviewed';
 
 export interface Status {
   idStatus : number;
@@ -54,6 +59,8 @@ export interface Request {
   notes?: string;
   StudentCareer?: StudentCareer;
   Status?: Status;
+  Discrepancies: Discrepancy[];
+  Employee?: EmployeeReviewer;
 }
 
 export interface ScoreResult {
