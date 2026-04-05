@@ -79,12 +79,13 @@ export function NewRequest() {
         }else{
           toast.error(response.meta.message);
         }
+      }).finally(()=>{
+        setIsSubmitting(false);
       });
 
     }catch(err){
       console.log(err)
       toast.error('Ocurrió un error al enviar la solicitud. Por favor, intenta nuevamente.');
-    }finally{
       setIsSubmitting(false);
     }
     

@@ -139,10 +139,10 @@ class HistoryParserService {
     
     // Expresiones regulares para limpiar y extraer datos
     // Patrón para líneas con datos (al menos 6 campos separados por espacios múltiples)
-    const dataLineRegex = /^([A-Z0-9]+)\s+([A-ZÑÁÉÍÓÚ\s]+?)\s+(\d+\.?\d*)\s+\d+\s+(\d{4})\s+(\d+)\s+(\d+\.?\d*)\s+([APR]{3})/i;
+    const dataLineRegex = /^([A-Z0-9]+)\s+([A-Z1.ÑÁÉÍÓÚ\s]+?)\s+(\d+\.?\d*)\s+\d+\s+(\d{4})\s+(\d+)\s+(\d+\.?\d*)\s+([APR]{3})/i;
     
     // También manejar líneas donde los datos están más compactos
-    const compactRegex = /([A-Z0-9]+)\s+([A-ZÑÁÉÍÓÚ\s]+?)\s+(\d+\.?\d*)\s+\d+\s+(\d{4})\s+(\d+)\s+(\d+\.?\d*)\s+([APR]{3})/i;
+    const compactRegex = /([A-Z0-9]+)\s+([A-Z1.ÑÁÉÍÓÚ\s]+?)\s+(\d+\.?\d*)\s+\d+\s+(\d{4})\s+(\d+)\s+(\d+\.?\d*)\s+([APR]{3})/i;
     
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
