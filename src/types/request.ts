@@ -127,6 +127,13 @@ export interface EmployeeRequestJustification {
   reviewedAt: string | Date | null;
 }
 
+export interface EmployeeRequestImage {
+  idRequestImage: number;
+  imageName: string;
+  thumbnailUrl?: string | null;
+  imageUrl: string;
+}
+
 export interface EmployeeRequestDiscrepancy {
   idDiscrepancy: number;
   expectedPeriod: number | null;
@@ -153,6 +160,13 @@ export interface EmployeeScoreCalculation {
   calculatedAt: string | Date;
 }
 
+export interface EmployeeGeneratedReport {
+  idRequestReport: number;
+  fileName: string;
+  mimeType: string;
+  generatedAt: string | Date;
+}
+
 export interface EmployeeRequestSummary {
   idRequest: number;
   submittedAt: string | Date;
@@ -162,6 +176,7 @@ export interface EmployeeRequestSummary {
   student: EmployeeRequestStudent | null;
   career: EmployeeRequestCareer | null;
   reviewer: EmployeeReviewer | null;
+  generatedReport: EmployeeGeneratedReport | null;
   discrepancyCount: number;
   justificationCount: number;
 }
@@ -172,12 +187,14 @@ export interface EmployeeRequestDetail {
   reviewedAt: string | Date | null;
   finalScore: number | null;
   generatedReportUrl: string | null;
+  generatedReport: EmployeeGeneratedReport | null;
   notes: string | null;
   status: EmployeeRequestStatus | null;
   student: EmployeeRequestStudent | null;
   career: EmployeeRequestCareer | null;
   reviewer: EmployeeReviewer | null;
   discrepancies: EmployeeRequestDiscrepancy[];
+  requestImages: EmployeeRequestImage[];
   scoreCalculation: EmployeeScoreCalculation | null;
 }
 

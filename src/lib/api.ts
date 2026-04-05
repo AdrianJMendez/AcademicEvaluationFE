@@ -9,8 +9,8 @@ export interface Response {
     hasError: boolean
 }
 
-// const API_BASE_URL = 'http://localhost:3000';
-const API_BASE_URL = 'https://academicevaluation.mooo.com';
+export const API_BASE_URL = 'http://localhost:3000';
+//const API_BASE_URL = 'https://academicevaluation.mooo.com';
 
 const api = axios.create({  
   baseURL: API_BASE_URL,
