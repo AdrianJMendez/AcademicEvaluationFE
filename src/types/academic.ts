@@ -5,6 +5,8 @@ export interface Subject {
   subjectCode: string;
   subjectName: string;
   idealPeriod: number;
+  subjectType?: string;
+  isOptative?: boolean;
   Prerequisites: Subject[];
   credits?: number;
 }
@@ -14,12 +16,14 @@ export interface Career {
   careerName: string;
   careerCode: string;
   facultyName: string;
-  descripttion? : string;
+  description? : string;
   yearLength: number;
   totalPeriods: number;
   isActive : boolean;
   Subjects?: Subject[];
   StudentCareer? : StudentCareer;
+  optativesQty: number;
+  electivesQty: number
 }
 
 // export interface AcademicHistory {

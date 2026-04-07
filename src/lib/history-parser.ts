@@ -24,6 +24,48 @@ class HistoryParserService {
     return HistoryParserService.instance;
   }
 
+  //Chequear casos en específico
+  private fillGapsOnCode(normalizedCode: string): string {
+
+    if(normalizedCode == 'I110'){   //INTRODUCCION
+      return 'IS110'
+    }else if(normalizedCode == 'M111'){ //GEOMETRIA
+      return 'MM111'
+    } else if(normalizedCode == 'E011'){  //ESPAÑOL GENERAL
+      return 'EG011'
+    } else if(normalizedCode == 'MM21'){  //VECTORES
+      return 'MM211'
+    } else if(normalizedCode == 'DQ10'){  //DIBUJO 1
+      return 'DQ101'
+    } else if(normalizedCode == 'SC10'){  //SOCIOLOGIA
+      return 'SC101'
+    } else if(normalizedCode == 'MMA1'){  //ECUACIONES
+      return 'MM411'
+    } else if(normalizedCode == 'IS31'){  //CIRCUITOR
+      return 'IS311'
+    } else if(normalizedCode == 'S11'){   //ELECTRONICA
+      return 'IS411'
+    } else if(normalizedCode == 'IE11'){   //REDES 2
+      return 'IS611'
+    } else if(normalizedCode == 'I5820'){   //FINANZAS 
+      return 'IS820'
+    } else if(normalizedCode == 'IS71'){   //DISEÑO DIGITAL
+      return 'IS711'
+    } else if(normalizedCode == 'B10'){   //EDUCACION AMBIENTAL
+      return 'BI130'
+    } else if(normalizedCode == 'I5904'){   //GERENCIA
+      return 'IS904'
+    } else if(normalizedCode == 'DQJ02'){   //DIBUJO II
+      return 'DQ102'
+    } else if(normalizedCode == 'IS15'){   //SEMINARIO 
+      return 'IS115'
+    } else if(normalizedCode == 'RR1S1'){   //PRIMEROS AUXILIOS
+      return 'RR181'
+    } 
+
+    return normalizedCode;
+  }
+
   /**
    * Parsea el texto extraído del OCR para extraer la tabla de asignaturas
    * @param text Texto extraído del OCR
@@ -36,29 +78,12 @@ class HistoryParserService {
     return this.parseStandardFormat(text);
   }
 
-  /**
-   * Convierte los caracteres del código según las reglas especificadas
-   * - Primeros dos caracteres: convertir números a letras
-   *   - 1 -> I
-   *   - 8 o 9 -> S
-   * - Últimos tres dígitos: convertir letras a números
-   *   - N, H o T -> 11
-   *   - I -> 1
-   *   - O -> 0
-   */
   private normalizeCode(code: string): string {
     if (!code) return code;
     
     let normalized = code.toUpperCase();
     const originalCode = normalized;
-
-    // Regla especial: Si el primer carácter es 'M' y el código tiene menos de 5 caracteres, duplicar la M
-    if (normalized.length > 0 && normalized[0] === 'M' && normalized.length < 5) {
-      normalized = 'M' + normalized;
-      console.log(`Código duplicado (M inicial): ${originalCode} -> ${normalized}`);
-    }
     
-    // Convertir primeros dos caracteres (si son números, convertirlos a letras)
     let prefix = '';
     let rest = '';
     
@@ -111,22 +136,15 @@ class HistoryParserService {
       
       // Si la conversión generó más caracteres, ajustar
       if (convertedSuffix.length > 3) {
-        // Tomar solo los últimos 3 caracteres si se expandió
         convertedSuffix = convertedSuffix.slice(-3);
       } else if (convertedSuffix.length < 3) {
-        // Si se redujo, rellenar con ceros a la izquierda
         convertedSuffix = convertedSuffix.padStart(3, '0');
       }
       
       normalized = start + convertedSuffix;
     }
     
-    // Log para depuración
-    if (originalCode !== normalized) {
-      console.log(`Código normalizado: ${originalCode} -> ${normalized}`);
-    }
-    
-    return normalized;
+    return this.fillGapsOnCode(normalized);
   }
 
   /**
@@ -139,10 +157,13 @@ class HistoryParserService {
     
     // Expresiones regulares para limpiar y extraer datos
     // Patrón para líneas con datos (al menos 6 campos separados por espacios múltiples)
-    const dataLineRegex = /^([A-Z0-9]+)\s+([A-Z1.ÑÁÉÍÓÚ\s]+?)\s+(\d+\.?\d*)\s+\d+\s+(\d{4})\s+(\d+)\s+(\d+\.?\d*)\s+([APR]{3})/i;
+    const dataLineRegex = /^([A-Z0-9]+)\s+([A-Z15.ÑÁÉÍÓÚ\s]+?)\s+(\d+\.?\d*)\s+\d+\s+(\d{4})\s+(\d+)\s+(\d+\.?\d*)\s+([A-Z]{3})/i;
     
-    // También manejar líneas donde los datos están más compactos
-    const compactRegex = /([A-Z0-9]+)\s+([A-Z1.ÑÁÉÍÓÚ\s]+?)\s+(\d+\.?\d*)\s+\d+\s+(\d{4})\s+(\d+)\s+(\d+\.?\d*)\s+([APR]{3})/i;
+    // Excepciones con letras en la seccion //REDES II
+    const alternativeRegex1 = /([A-Z0-9]+)\s+([A-Z15.ÑÁÉÍÓÚ\s]+?)\s+(\d+\.?\d*)\s+[A-Z0-9]+\s+(\d{4})\s+(\d+)\s+(\d+\.?\d*)\s+([A-Z]{3})/i;
+
+    // Excepciones con letras en la nota //ANALISIS  Y DISEÑO    SEGURIDAD
+    const alternativeRegex2 = /([A-Z0-9]+)\s+([A-Z15.ÑÁÉÍÓÚ\s]+?)\s+(\d+\.?\d*)\s+\d+\s+(\d{4})\s+(\d+)\s+(\d+[A-Z])\s+([A-Z]{3})/i;
     
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
@@ -156,12 +177,17 @@ class HistoryParserService {
       if (line.match(/CODIGO|ASIGNATURA|UV|SECCION|AÑO|PERIODO|CALIFICACION|OBS/i)) {
         continue;
       }
+
+      
       
       let match = line.match(dataLineRegex);
       if (!match) {
-        match = line.match(compactRegex);
+        match = line.match(alternativeRegex1);
+        if(!match){
+          match = line.match(alternativeRegex2);
+        }
       }
-      
+
       if (match) {
         try {
           let code = match[1].trim();
@@ -173,13 +199,19 @@ class HistoryParserService {
           // Limpiar el nombre de espacios extras y caracteres especiales
           name = name.replace(/\s+/g, ' ').trim();
           
-          const uv = parseFloat(match[3]);
+          let uv;
+
+          if(match[3].match(/[A-Z]+/i)){   //Si el campo de las unidades valorativas viene con letras
+            uv = 4.00
+          }else{
+            uv = parseFloat(match[3]);
+          }
+
           const year = parseInt(match[4]);
           const period = parseInt(match[5]);
           const grade = parseFloat(match[6]);
           let obs = match[7].toUpperCase();
           
-          // Determinar estado según la observación
           let status: 'APR' | 'RPB' | 'NSP' = 'APR';
           if (obs === 'RPB' || (grade < 65 && grade > 0)) {
             status = 'RPB';
@@ -193,7 +225,7 @@ class HistoryParserService {
             id: `${code}-${year}-${period}`,
             subjectCode: code,
             subjectName: name,
-            credits: Math.round(uv), // Convertir a entero si es necesario
+            credits: Math.round(uv), 
             period,
             year,
             grade: Math.round(grade),
@@ -206,35 +238,11 @@ class HistoryParserService {
       }
     }
     
-    // Imprimir la tabla en el formato solicitado
-    this.printSubjectTable(subjects);
-    
     return subjects;
   }
 
   /**
-   * Imprime la tabla de asignaturas en el formato solicitado
-   */
-  private printSubjectTable(subjects: ParsedSubject[]): void {
-    console.log('\n=== ASIGNATURAS DETECTADAS ===\n');
-    
-    const formattedSubjects = subjects.map(subject => ({
-      subjectCode: subject.subjectCode,
-      subjectName: subject.subjectName
-    }));
-    
-    console.log(JSON.stringify(formattedSubjects, null, 2));
-    
-    console.log('\n=== RESUMEN ===');
-    console.log(`Total de asignaturas: ${subjects.length}`);
-    console.log(`Aprobadas: ${subjects.filter(s => s.status === 'APR').length}`);
-    console.log(`Reprobadas: ${subjects.filter(s => s.status === 'RPB').length}`);
-    console.log(`No presentadas: ${subjects.filter(s => s.status === 'NSP').length}`);
-    console.log('================\n');
-  }
-
-  /**
-   * Parsea el formato estándar original
+   * Parsea el formato estándar original impreso
    */
   private parseStandardFormat(text: string): ParsedSubject[] {
     const lines = text.split('\n');
@@ -265,7 +273,7 @@ class HistoryParserService {
         continue;
       }
 
-      // Si estamos en una tabla y la línea tiene formato de datos
+
       if (inTable && line.length > 0 && !line.includes('---') && !line.includes('===')) {
         const subject = this.parseSubjectLine(line, currentYear);
         if (subject) {
@@ -281,9 +289,6 @@ class HistoryParserService {
    * Parsea una línea de texto para extraer los datos de una asignatura (formato estándar)
    */
   private parseSubjectLine(line: string, year: number): ParsedSubject | null {
-    // Patrones comunes en el texto OCR
-    // Ejemplo: "IS110 | INTROD A LA ING.EN SISTEMAS | 4 | 1 | 100 | APR"
-    // o: "MM110 | MATEMATICA | 4 | 1 | 84 | APR"
     
     // Limpiar la línea
     let cleanLine = line.replace(/\|/g, '|').trim();
@@ -380,7 +385,7 @@ class HistoryParserService {
    * @param ocrResults Array de textos extraídos
    * @param format Formato del historial académico
    */
-  combineResults(ocrResults: string[], format: HistoryFormat = 'standard'): ParsedSubject[] {
+  combineResults(ocrResults: string[], format: HistoryFormat = 'webTable'): ParsedSubject[] {
     const allSubjects: ParsedSubject[] = [];
     const seenIds = new Set<string>();
     

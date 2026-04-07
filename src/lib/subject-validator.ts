@@ -38,7 +38,6 @@ class SubjectValidatorService {
    */
   validateSubjects(parsedSubjects: ParsedSubject[], subjects: Subject[]): ValidationResult {
 
-    console.log(parsedSubjects,subjects);
     const validSubjects: ParsedSubject[] = [];
     const invalidSubjects: InvalidSubject[] = [];
     const warnings: ValidationWarning[] = [];

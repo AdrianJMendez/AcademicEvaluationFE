@@ -27,15 +27,9 @@ class OCRServiceOptimized {
     this.isInitializing = true;
     
     try {
-      this.worker = await Tesseract.createWorker('spa', 1, {
-        logger: (m) => {
-          if (m.status === 'recognizing text') {
-            console.log(`OCR Progress: ${Math.round(m.progress * 100)}%`);
-          }
-        },
-      });
+      this.worker = await Tesseract.createWorker('spa', 1);
       
-      // Configurar para mejor precisión
+      // Configurar el worker
       await this.worker.setParameters({
         tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789áéíóúñÑ.,:;() -',
         preserve_interword_spaces: '1',
@@ -54,7 +48,6 @@ class OCRServiceOptimized {
       
       let imageUrl = URL.createObjectURL(imageFile);
       
-      // Opcional: Preprocesamiento de imagen (se puede hacer con canvas)
       if (preprocess) {
         imageUrl = await this.preprocessImage(imageUrl);
       }
@@ -76,8 +69,6 @@ class OCRServiceOptimized {
   }
 
   private async preprocessImage(imageUrl: string): Promise<string> {
-    // Preprocesamiento de imagen para mejorar OCR
-    // Ejemplo: convertir a escala de grises, aumentar contraste, etc.
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = () => {
@@ -117,7 +108,7 @@ class OCRServiceOptimized {
     // Limpiar texto extraído
     return text
       .replace(/\n{3,}/g, '\n\n') // Eliminar múltiples saltos de línea
-      .replace(/[^\w\sáéíóúñÑ.,:;()/-]/g, '') // Eliminar caracteres especiales
+      .replace(/[^\w\s.,:()/-]/g, '') // Eliminar caracteres especiales
       .trim();
   }
 
