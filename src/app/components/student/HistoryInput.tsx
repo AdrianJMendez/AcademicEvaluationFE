@@ -220,12 +220,9 @@ export function HistoryInput({history ,idealSubjects, plan, onContinue }: Histor
         history : mappedSubjects
       }
 
-      console.log(payload);
-
       careerService.evalateHistory(payload)
       .then((response)=>{
         if(!response.hasError){
-          console.log("response", response);
           onContinue(allSubjects,response.data);
         }
       })

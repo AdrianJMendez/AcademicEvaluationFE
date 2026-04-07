@@ -500,12 +500,12 @@ export function ReviewRequest() {
                       <p className="mt-1">
                         Nota final: <span className="text-xl font-semibold">{request.finalScore ?? '-'}</span>
                       </p>
-                      {request.scoreCalculation && (
+                      {/* {request.scoreCalculation && (
                         <p className="mt-2 text-xs">
                           Retraso total: {request.scoreCalculation.totalDelay} | Penalizacion:{' '}
                           {request.scoreCalculation.delayPenalty} | Ajuste: {request.scoreCalculation.impactAdjustment}
                         </p>
-                      )}
+                      )} */}
                     </div>
                   )}
                 </div>
@@ -749,10 +749,10 @@ export function ReviewRequest() {
                                 <p className="text-lg font-semibold tracking-tight text-slate-900">
                                   {discrepancy.discrepancyType?.typeName ?? 'Discrepancia sin tipo'}
                                 </p>
-                                <p className="mt-1 text-sm text-slate-500">
+                                {/* <p className="mt-1 text-sm text-slate-500">
                                   Periodo esperado: {discrepancy.expectedPeriod ?? '-'} | Periodo real: {discrepancy.actualPeriod ?? '-'} | Diferencia:{' '}
                                   {discrepancy.periodDifference ?? '-'}
-                                </p>
+                                </p> */}
                               </div>
 
                               <Badge variant="outline" className="rounded-full border-slate-200 bg-white text-slate-700">
@@ -777,10 +777,10 @@ export function ReviewRequest() {
                             <p className="text-lg font-semibold tracking-tight text-slate-900">
                               {discrepancy.discrepancyType?.typeName ?? 'Discrepancia sin tipo'}
                             </p>
-                            <p className="mt-1 text-sm text-slate-500">
+                            {/* <p className="mt-1 text-sm text-slate-500">
                               Periodo esperado: {discrepancy.expectedPeriod ?? '-'} | Periodo real: {discrepancy.actualPeriod ?? '-'} | Diferencia:{' '}
                               {discrepancy.periodDifference ?? '-'}
-                            </p>
+                            </p> */}
                           </div>
 
                           <Badge variant="outline" className="rounded-full border-slate-200 bg-white text-slate-700">

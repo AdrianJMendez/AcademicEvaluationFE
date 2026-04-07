@@ -305,7 +305,7 @@ export function JustificationsInput({ discrepancies, onSubmit, onBack }: Justifi
             Sin Discrepancias
           </CardTitle>
           <CardDescription>
-            Tu historial académico coincide perfectamente con el plan oficial
+            {discrepancies[0].description}
           </CardDescription>
         </CardHeader>
         <CardContent>
